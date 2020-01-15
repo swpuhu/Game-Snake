@@ -20,9 +20,11 @@ const globalParams = {
 }
 
 class Snake {
-    constructor (x, y, length = 3, direction = DIRECTION.left){
+    constructor (x, y, length = 3, direction = DIRECTION.left, width, height){
         this.x = x;
         this.y = y;
+        this.width = width;
+        this.height = height;
         this.length = length;
         this.direction = direction;
         this.length = length;
@@ -112,6 +114,18 @@ class Snake {
                 this.y -= globalParams.unitSize;
                 break;
         }
+        if (this.x < 0) {
+            this.x = this.width - globalParams.unitSize;
+        }
+        if (this.y < 0) {
+            this.y = this.height - globalParams.unitSize;
+        }
+        if (this.x >= this.width) {
+            this.x = 0;
+        }
+        if (this.y >= this.height) {
+            this.y = 0;
+        }
         let newHead = new SNode(this.x, this.y);
         newHead.next = this.head;
         this.head.before = newHead;
@@ -119,7 +133,30 @@ class Snake {
         this.tail = this.tail.before;
         this.tail.next = null;
     }
+
+
+    getAllPosition() {
+        let position = [];
+        let pointer = this.head;
+        while(pointer) {
+            position.push({x: pointer.x, y: pointer.y})
+            pointer = pointer.next;
+        }
+        return position;
+    }
+
+    draw(ctx) {
+        let pointer = this.head;
+        while (pointer) {
+            let x = pointer.x;
+            let y = ctx.canvas.height - pointer.y - globalParams.unitSize;
+            ctx.fillRect(x, y, globalParams.unitSize, globalParams.unitSize);
+            pointer = pointer.next;
+        }
+        ctx.fill();
+    }
 }
+
 
 if (typeof module !== 'undefined') {
     exports.Snake = Snake;
