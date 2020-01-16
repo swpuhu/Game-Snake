@@ -1,4 +1,4 @@
-const {Snake, params} = require('./snake');
+const { Snake, params } = require('./snake');
 const Bonus = require('./bonus');
 
 
@@ -6,8 +6,8 @@ class Game {
     constructor(width, height) {
         this.frequency = 0;
         this.bonusFrequency = 0;
-        this.threshold = 10;
-        this.bonusThreshold = 500;
+        this.threshold = 5;
+        this.bonusThreshold = 800;
         this.timestamp = Date.parse(new Date());
         let mainCanvas = document.createElement('canvas');
         let backCanvas = document.createElement('canvas');
@@ -29,13 +29,14 @@ class Game {
         this.backContext = backCanvas.getContext('2d');
         this.snakeContext = snakeCanvas.getContext('2d');
         this.bonusContext = bonusCanvas.getContext('2d');
-        this.snake = new Snake(mainCanvas.width / 2, mainCanvas.height / 2, 50, 'top', width, height);
+        this.snake = new Snake(mainCanvas.width / 2, mainCanvas.height / 2, 5, 'top', width, height);
         this.bonus = new Bonus(this.bonusCanvas.width, this.bonusCanvas.height);
         this.bonus.draw(this.bonusContext);
         this.mainLoop = null;
         window.snake = this.snake;
         document.body.appendChild(mainCanvas);
         this.initIO();
+        this.render(true);
     }
 
     initIO() {
@@ -47,48 +48,86 @@ class Game {
                 that.snake.turn('top');
             } else if (e.key === 'ArrowDown') {
                 that.snake.turn('bottom');
-            } else if (e.key === 'ArrowRight') { 
+            } else if (e.key === 'ArrowRight') {
                 that.snake.turn('right');
             } else if (e.key === ' ') {
                 if (that.mainLoop) {
                     that.pause();
                 } else {
-                    that.render();
+                    that.loop();
                 }
             }
         }
     }
 
 
-    snakeRender () {
+    snakeRender() {
         this.snakeContext.clearRect(0, 0, this.snakeCanvas.width, this.snakeCanvas.height);
         this.snake.draw(this.snakeContext);
     }
 
-    bonusRender () {
+    bonusRender() {
         this.bonusContext.clearRect(0, 0, this.bonusCanvas.width, this.bonusCanvas.height);
-        this.bonus.reGeneratePosition(this.bonusCanvas.width, this.bonusCanvas.height, this.snake.getAllPosition());
         this.bonus.draw(this.bonusContext);
     }
 
 
     render() {
-        ++this.frequency;
-        ++this.bonusFrequency;
-        if (this.frequency >= this.threshold) {
-            this.mainContext.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
-            this.snake.updatePosition();
-            if (this.bonusFrequency >= this.bonusThreshold) {
-                this.bonusRender();
-                this.bonusFrequency = 0;
-            }
-            this.snakeRender();
-            this.mainContext.drawImage(this.snakeCanvas, 0, 0);
-            this.mainContext.drawImage(this.bonusCanvas, 0, 0);
-            this.frequency = 0;
-        }
-        this.mainLoop = requestAnimationFrame(this.render.bind(this));
+        this.snakeRender();
+        this.bonusRender();
+        this.mainContext.drawImage(this.snakeCanvas, 0, 0);
+        this.mainContext.drawImage(this.bonusCanvas, 0, 0);
     }
+
+    getBonus() {
+        if (this.snake.x === this.bonus.x && this.snake.y === this.bonus.y) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    hitEdge() {
+
+    }
+
+    loop() {
+        this.mainLoop = requestAnimationFrame(this.loop.bind(this));
+        if (this.snake.hitSelf()) {
+            this.pause();
+            alert('Game Over!');
+            this.reset();
+        } else if (this.getBonus()) {
+            this.snake.addLength(1);
+            this.bonus.reGeneratePosition(this.bonusCanvas.width, this.bonusCanvas.height, this.snake.getAllPosition());
+            this.bonusRender();
+            this.bonusFrequency = 0;
+        } else {
+            ++this.frequency;
+            ++this.bonusFrequency;
+            if (this.frequency >= this.threshold) {
+                this.mainContext.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+                this.snake.updatePosition();
+                if (this.bonusFrequency >= this.bonusThreshold) {
+                    this.bonus.reGeneratePosition(this.bonusCanvas.width, this.bonusCanvas.height, this.snake.getAllPosition());
+                    this.bonusRender();
+                    this.bonusFrequency = 0;
+                }
+                this.snakeRender();
+                this.mainContext.drawImage(this.snakeCanvas, 0, 0);
+                this.mainContext.drawImage(this.bonusCanvas, 0, 0);
+                this.frequency = 0;
+            }
+        }
+    }
+
+    reset() {
+        this.mainContext.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+        this.snake.reset();
+        this.bonus.reset(this.snake.getAllPosition());
+        this.render();
+    }
+
 
     pause() {
         cancelAnimationFrame(this.mainLoop)

@@ -3,6 +3,8 @@ const {params} = require('./snake');
 class Bonus {
     constructor (width, height) {
         this.generatePos(width, height);
+        this.width = width;
+        this.height = height;
         this.style = {
             color: '#ee0a0a'
         }
@@ -13,7 +15,7 @@ class Bonus {
         this.y = Math.floor(Math.random() * height / params.unitSize) * params.unitSize;
     }
 
-    reGeneratePosition(width, height, excludePosition) {
+    reGeneratePosition(width, height, excludePosition = []) {
         this.generatePos(width, height);
         let flag = false;
         for (let i = 0; i < excludePosition.length; i++) {
@@ -37,8 +39,12 @@ class Bonus {
         if (ctx.fillStyle !== this.style.color) {
             ctx.fillStyle = this.style.color;
         }
-        ctx.fillRect(this.x, ctx.canvas.height - this.y, params.unitSize, params.unitSize);
+        ctx.fillRect(this.x, ctx.canvas.height - this.y - params.unitSize, params.unitSize, params.unitSize);
         ctx.fill();
+    }
+
+    reset(excludePosition) {
+        this.reGeneratePosition(this.width, this.height, excludePosition);
     }
 }
 

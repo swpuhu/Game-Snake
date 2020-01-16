@@ -16,7 +16,7 @@ const DIRECTION = {
 }
 
 const globalParams = {
-    unitSize: 5
+    unitSize: 10
 }
 
 class Snake {
@@ -28,6 +28,8 @@ class Snake {
         this.length = length;
         this.direction = direction;
         this.length = length;
+        this.initDirection = direction;
+        this.initLength = length;
         this.init();
         this.head;
         this.tail;
@@ -154,6 +156,25 @@ class Snake {
             pointer = pointer.next;
         }
         ctx.fill();
+    }
+
+    hitSelf() {
+        let p = this.head;
+        let isHit = false;
+        while(p) {
+            if (p !== this.head && this.x === p.x && this.y === p.y) {
+                isHit = true;
+                break;
+            }
+            p = p.next;
+        }
+        return isHit;
+    }
+
+    reset() {
+        this.length = this.initLength;
+        this.direction = this.initDirection;
+        this.init();
     }
 }
 
